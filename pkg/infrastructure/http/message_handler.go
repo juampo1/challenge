@@ -12,13 +12,13 @@ type Message struct {
 	domain.Content `json: content`
 }
 
-func CreateMessage(user User) http.HandlerFunc {
+func CreateMessage() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 
 	}
 }
 
-func GetMessage(user User) http.HandlerFunc {
+func GetMessage() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 
 	}
