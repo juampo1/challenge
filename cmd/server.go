@@ -26,7 +26,7 @@ func main() {
 	handlers := []httpx.ApiHandler{
 		{
 			Method:      "POST",
-			Uri:         "/health",
+			Uri:         "/check",
 			HandlerFunc: httpx.Health(),
 		},
 		{
