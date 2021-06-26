@@ -4,7 +4,10 @@ import (
 	"log"
 	"net/http"
 
+	"github.com/challenge/pkg/application"
+	db "github.com/challenge/pkg/database"
 	httpx "github.com/challenge/pkg/infrastructure/http"
+	"github.com/challenge/pkg/infrastructure/repositories"
 )
 
 const (
@@ -17,11 +20,19 @@ const (
 
 func main() {
 
+	db, _ := db.Connect()
+	userRepository := repositories.NewUserRepository(*db)
+
 	handlers := []httpx.ApiHandler{
 		{
 			Method:      "POST",
 			Uri:         "/health",
 			HandlerFunc: httpx.Health(),
+		},
+		{
+			Method:      "POST",
+			Uri:         "/users",
+			HandlerFunc: httpx.CreateUser(application.CreateUserHandler(userRepository)),
 		},
 	}
 

@@ -7,5 +7,5 @@ import (
 )
 
 type UserRepository interface {
-	CreateUser(ctx context.Context, usr domain.User) (id int64, err error)
+	CreateUser(ctx context.Context, usr domain.User) int64
 }
