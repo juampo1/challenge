@@ -3,9 +3,11 @@ package main
 import (
 	"log"
 	"net/http"
+	"time"
 
 	"github.com/challenge/pkg/application"
 	db "github.com/challenge/pkg/database"
+	"github.com/challenge/pkg/infrastructure/auth"
 	httpx "github.com/challenge/pkg/infrastructure/http"
 	"github.com/challenge/pkg/infrastructure/repositories"
 )
@@ -21,6 +23,7 @@ const (
 func main() {
 
 	db, _ := db.Connect()
+	jwtAuth := auth.NewJWTAuth("HS256", []byte("your-256-bit-secret"), time.Hour)
 	userRepository := repositories.NewUserRepository(*db)
 
 	handlers := []httpx.ApiHandler{
@@ -42,7 +45,7 @@ func main() {
 		{
 			Method:      "POST",
 			Uri:         "/login",
-			HandlerFunc: httpx.Login(application.CreateGetUserByUsernameQueryHandler(userRepository)),
+			HandlerFunc: httpx.Login(application.CreateGetUserByUsernameQueryHandler(userRepository), jwtAuth),
 		},
 	}
 

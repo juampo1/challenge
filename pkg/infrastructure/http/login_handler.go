@@ -5,9 +5,10 @@ import (
 	"net/http"
 
 	"github.com/challenge/pkg/application"
+	"github.com/challenge/pkg/infrastructure/auth"
 )
 
-func Login(qry application.GetUserByUsernameQueryHandler) http.HandlerFunc {
+func Login(qry application.GetUserByUsernameQueryHandler, jwtAuth auth.JWTAuth) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		var u user
 
@@ -22,6 +23,10 @@ func Login(qry application.GetUserByUsernameQueryHandler) http.HandlerFunc {
 			Password: u.Password,
 		}
 
-		qry.Handle(r.Context(), getUserByUsernameQuery)
+		user, _ := qry.Handle(r.Context(), getUserByUsernameQuery)
+
+		token, _ := jwtAuth.CreateToken(user.Id)
+
+		json.NewEncoder(w).Encode(token)
 	}
 }
