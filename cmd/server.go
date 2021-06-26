@@ -34,6 +34,16 @@ func main() {
 			Uri:         "/users",
 			HandlerFunc: httpx.CreateUser(application.CreateUserHandler(userRepository)),
 		},
+		{
+			Method:      "POST",
+			Uri:         "/check",
+			HandlerFunc: httpx.Health(),
+		},
+		{
+			Method:      "POST",
+			Uri:         "/login",
+			HandlerFunc: httpx.Login(application.CreateGetUserByUsernameQueryHandler(userRepository)),
+		},
 	}
 
 	httpHandler := httpx.SetUpHandlers(handlers...)
