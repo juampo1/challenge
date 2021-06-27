@@ -12,10 +12,10 @@ import (
 const CreateMessageCommandName = "CreateMessageCommand"
 
 type CreateMessageCommand struct {
-	Sender    int64
-	Recipient int64
-	CreatedAt time.Time
-	Content   domain.Content
+	Sender      int64
+	Recipient   int64
+	ContentType string
+	Text        string
 }
 
 type CreateMessageCommandHandler struct {
@@ -40,7 +40,7 @@ func (cm CreateMessageCommandHandler) Handle(ctx context.Context, cmd Command) (
 		return 0, time.Now(), errors.New("wrong command")
 	}
 
-	message := domain.NewMessage(msg.Content, time.Now(), msg.Sender, msg.Recipient)
+	message := domain.NewMessage(domain.NewContent(msg.ContentType, msg.Text), time.Now(), msg.Sender, msg.Recipient)
 
 	id, createdAt, err := cm.MessageRepository.CreateMessage(ctx, message)
 

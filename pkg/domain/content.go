@@ -1,13 +1,13 @@
 package domain
 
 type Content struct {
-	contentType string
-	text        string
+	ContentType string
+	Text        string
 }
 
 func NewContent(contentType string, text string) Content {
 	return Content{
-		contentType: contentType,
-		text:        text,
+		ContentType: contentType,
+		Text:        text,
 	}
 }

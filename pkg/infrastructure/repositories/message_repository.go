@@ -19,19 +19,17 @@ func NewMessageRepository(db sql.DB) *MessageRepository {
 }
 
 func (repo MessageRepository) CreateMessage(ctx context.Context, msg domain.Message) (int64, time.Time, error) {
+	insertMessageSql := `INSERT INTO message(sender_id, recipient_id, created_at) VALUES (?, ?, CURRENT_TIMESTAMP)`
+	insertContentSql := `INSERT INTO content(message_id, content_type, text) VALUES (?, ?, ?)`
 
-	return 1, time.Now(), nil
-	// insertUserSql := `INSERT INTO user(username, password) VALUES (?, ?)`
+	insertMessageStatement, _ := repo.Db.Prepare(insertMessageSql)
+	insertContentStatement, _ := repo.Db.Prepare(insertContentSql)
 
-	// statement, _ := repo.Db.Prepare(insertUserSql)
+	insertMeesageResult, _ := insertMessageStatement.Exec(msg.Sender, msg.Recipient)
 
-	// result, _ := statement.Exec(usr.Username, usr.Password)
+	messageId, _ := insertMeesageResult.LastInsertId()
 
-	// id, err := result.LastInsertId()
+	_, _ = insertContentStatement.Exec(messageId, msg.Content.ContentType, msg.Content.Text)
 
-	// if err != nil {
-	// 	fmt.Println(err)
-	// }
-
-	// return id
+	return messageId, time.Now(), nil
 }

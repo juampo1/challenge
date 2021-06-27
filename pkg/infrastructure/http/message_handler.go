@@ -9,14 +9,15 @@ import (
 )
 
 type Content struct {
-	ContentType string `json: contentType`
-	Text        string `json: text`
+	ContentType string `json: "contentType,omitempty"`
+	Text        string `json: "text,omitempty"`
 }
-
 type Message struct {
-	Sender    int64   `json: sender`
-	Recipient int64   `json: recipient`
-	Content   Content `json: content`
+	Id        int64     `json: id`
+	Timestamp time.Time `json: timestamp`
+	Sender    int64     `json: "sender,omitempty"`
+	Recipient int64     `json: "recipient,omitempty"`
+	Content   Content   `json: "content,omitempty"`
 }
 
 func CreateMessage(cmd application.CreateMessageCommandHandler) http.HandlerFunc {
@@ -30,15 +31,15 @@ func CreateMessage(cmd application.CreateMessageCommandHandler) http.HandlerFunc
 		}
 
 		createMsgCommand := application.CreateMessageCommand{
-			Sender:    msg.Sender,
-			Recipient: msg.Recipient,
-			CreatedAt: time.Now(),
-			Content:   msg.Content,
+			Sender:      msg.Sender,
+			Recipient:   msg.Recipient,
+			ContentType: msg.Content.ContentType,
+			Text:        msg.Content.Text,
 		}
 
-		id, _, _ := cmd.Handle(r.Context(), createMsgCommand)
+		id, timestamp, _ := cmd.Handle(r.Context(), createMsgCommand)
 
-		json.NewEncoder(w).Encode(id)
+		json.NewEncoder(w).Encode(Message{Id: id, Timestamp: timestamp})
 	}
 }
 
