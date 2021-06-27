@@ -43,8 +43,8 @@ func (qry GetUserByUsernameQueryHandler) Handle(ctx context.Context, query Query
 		return domain.User{}, err
 	}
 
-	if usr.Username == user.Username && usr.Password == user.Password {
-		return user, nil
+	if usr.Username != user.Username || usr.Password != user.Password {
+		return domain.User{}, errors.New("incorrect Username/Password")
 	}
 
 	return user, nil

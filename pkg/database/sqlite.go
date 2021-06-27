@@ -24,6 +24,7 @@ func Connect() (*sql.DB, error) {
 		"id"	INTEGER NOT NULL UNIQUE,
 		"senderId"	INTEGER NOT NULL,
 		"recipientId"	INTEGER NOT NULL,
+		"created_at" TEXT NOT NULL,
 		PRIMARY KEY("id" AUTOINCREMENT)
 	)`)
 

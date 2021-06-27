@@ -25,6 +25,7 @@ func main() {
 	db, _ := db.Connect()
 	jwtAuth := auth.NewJWTAuth("HS256", []byte("your-256-bit-secret"), time.Hour)
 	userRepository := repositories.NewUserRepository(*db)
+	messageRepository := repositories.NewMessageRepository(*db)
 
 	handlers := []httpx.ApiHandler{
 		{
@@ -39,13 +40,13 @@ func main() {
 		},
 		{
 			Method:      "POST",
-			Uri:         "/check",
-			HandlerFunc: httpx.Health(),
+			Uri:         "/login",
+			HandlerFunc: httpx.Login(application.CreateGetUserByUsernameQueryHandler(userRepository), jwtAuth),
 		},
 		{
 			Method:      "POST",
-			Uri:         "/login",
-			HandlerFunc: httpx.Login(application.CreateGetUserByUsernameQueryHandler(userRepository), jwtAuth),
+			Uri:         "/messages",
+			HandlerFunc: httpx.CreateMessage(application.CreateMessageHandler(messageRepository)),
 		},
 	}
 
