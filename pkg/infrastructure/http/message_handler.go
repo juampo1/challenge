@@ -54,6 +54,7 @@ func GetMessages(query application.GetMessagesQueryHandler) http.HandlerFunc {
 			Start:     start,
 		}
 
-		query.Handle(r.Context(), getMessagesQuery)
+		messages, _ := query.Handle(r.Context(), getMessagesQuery)
+		json.NewEncoder(w).Encode(messages)
 	}
 }

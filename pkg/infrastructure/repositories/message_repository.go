@@ -37,7 +37,7 @@ func (repo MessageRepository) CreateMessage(ctx context.Context, msg domain.Mess
 func (repo MessageRepository) GetMessages(ctx context.Context, recipient int64, start int64) ([]domain.Message, error) {
 	messages := []domain.Message{}
 
-	getMessagesSql := `SELECT m.recipient_id, m.sender_id, m.created_at, c.content_type, c.text
+	getMessagesSql := `SELECT m.recipient_id, m.sender_id, c.content_type, c.text, m.created_at
 											From message m 
 											INNER JOIN content c ON m.id = c.message_id
 											WHERE m.recipient_id = ? AND m.id >= ?
@@ -50,12 +50,14 @@ func (repo MessageRepository) GetMessages(ctx context.Context, recipient int64, 
 	messageRows, _ := getMessageStatement.Query(recipient, start)
 
 	for messageRows.Next() {
-		var message domain.Message
-		var content domain.Content
+		var recipient int64
+		var sender int64
+		var createdAt time.Time
+		var contentType string
+		var text string
 
-		messageRows.Scan(&message.Recipient, &message.Sender, &message.CreatedAt)
-		messageRows.Scan(&content.ContentType, &content.Text)
-
+		messageRows.Scan(&recipient, &sender, &contentType, &text, &createdAt)
+		message := domain.NewMessage(domain.NewContent(contentType, text), createdAt, sender, recipient)
 		messages = append(messages, message)
 	}
 
