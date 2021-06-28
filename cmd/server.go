@@ -21,87 +21,41 @@ const (
 )
 
 func main() {
-
+	key := []byte("your-256-bit-secret")
 	db, _ := db.Connect()
-	jwtAuth := auth.NewJWTAuth("HS256", []byte("your-256-bit-secret"), time.Hour)
+	jwtAuth := auth.NewJWTAuth("HS256", key, time.Hour)
 	userRepository := repositories.NewUserRepository(*db)
 	messageRepository := repositories.NewMessageRepository(*db)
 
 	handlers := []httpx.ApiHandler{
 		{
 			Method:      "POST",
-			Uri:         "/check",
+			Uri:         CheckEndpoint,
 			HandlerFunc: httpx.Health(),
 		},
 		{
 			Method:      "POST",
-			Uri:         "/users",
+			Uri:         UsersEndpoint,
 			HandlerFunc: httpx.CreateUser(application.CreateUserHandler(userRepository)),
 		},
 		{
 			Method:      "POST",
-			Uri:         "/login",
+			Uri:         LoginEndpoint,
 			HandlerFunc: httpx.Login(application.CreateGetUserByUsernameQueryHandler(userRepository), jwtAuth),
 		},
 		{
 			Method:      "POST",
-			Uri:         "/messages",
-			HandlerFunc: httpx.CreateMessage(application.CreateMessageHandler(messageRepository)),
+			Uri:         MessagesEndpoint,
+			HandlerFunc: httpx.CreateMessage(application.CreateMessageHandler(messageRepository), key),
 		},
 		{
 			Method:      "GET",
-			Uri:         "/messages",
-			HandlerFunc: httpx.GetMessages(application.CreateGetMessagesQueryHandler(messageRepository)),
+			Uri:         MessagesEndpoint,
+			HandlerFunc: httpx.GetMessages(application.CreateGetMessagesQueryHandler(messageRepository), key),
 		},
 	}
 
 	httpHandler := httpx.SetUpHandlers(handlers...)
-
-	// h := controller.Handler{}
-
-	// // Configure endpoints
-	// // Health
-	// http.HandleFunc(CheckEndpoint, func(w http.ResponseWriter, r *http.Request) {
-	// 	if r.Method != http.MethodPost {
-	// 		http.Error(w, http.StatusText(405), http.StatusMethodNotAllowed)
-	// 		return
-	// 	}
-
-	// 	h.Check(w, r)
-	// })
-
-	// // Users
-	// http.HandleFunc(UsersEndpoint, func(w http.ResponseWriter, r *http.Request) {
-	// 	if r.Method != http.MethodPost {
-	// 		http.Error(w, http.StatusText(405), http.StatusMethodNotAllowed)
-	// 		return
-	// 	}
-
-	// 	h.CreateUser(w, r)
-	// })
-
-	// // Auth
-	// http.HandleFunc(LoginEndpoint, func(w http.ResponseWriter, r *http.Request) {
-	// 	if r.Method != http.MethodPost {
-	// 		http.Error(w, http.StatusText(405), http.StatusMethodNotAllowed)
-	// 		return
-	// 	}
-
-	// 	h.Login(w, r)
-	// })
-
-	// // Messages
-	// http.HandleFunc(MessagesEndpoint, auth.ValidateUser(func(w http.ResponseWriter, r *http.Request) {
-	// 	switch r.Method {
-	// 	case http.MethodGet:
-	// 		h.GetMessages(w, r)
-	// 	case http.MethodPost:
-	// 		h.SendMessage(w, r)
-	// 	default:
-	// 		http.Error(w, http.StatusText(405), http.StatusMethodNotAllowed)
-	// 		return
-	// 	}
-	// }))
 
 	// Start server
 	log.Println("Server started at port " + ServerPort)

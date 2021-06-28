@@ -22,10 +22,10 @@ func NewJWTAuth(algorithm string, secretKey []byte, timeout time.Duration) JWTAu
 }
 
 func (auth JWTAuth) CreateToken(userId int64) (string, error) {
-	token := jwt.New(jwt.GetSigningMethod(auth.algorithm))
-
-	token.Claims["userId"] = userId
-	token.Claims["exp"] = time.Now().Add(auth.timeout).Unix()
+	token := jwt.NewWithClaims(jwt.GetSigningMethod(auth.algorithm), jwt.StandardClaims{
+		ExpiresAt: time.Now().Add(auth.timeout).Unix(),
+		Issuer:    "ASAPP",
+	})
 
 	tokenValue, err := token.SignedString(auth.secretKey)
 

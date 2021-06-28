@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/challenge/pkg/application"
+	"github.com/challenge/pkg/infrastructure/auth"
 )
 
 type Content struct {
@@ -21,8 +22,13 @@ type Message struct {
 	Content   Content   `json: "content,omitempty"`
 }
 
-func CreateMessage(cmd application.CreateMessageCommandHandler) http.HandlerFunc {
+func CreateMessage(cmd application.CreateMessageCommandHandler, key []byte) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
+		if !auth.ValidateUser(key, *r) {
+			w.WriteHeader(http.StatusUnauthorized)
+			return
+		}
+
 		var msg Message
 
 		if err := json.NewDecoder(r.Body).Decode(&msg); err != nil {
@@ -44,8 +50,13 @@ func CreateMessage(cmd application.CreateMessageCommandHandler) http.HandlerFunc
 	}
 }
 
-func GetMessages(query application.GetMessagesQueryHandler) http.HandlerFunc {
+func GetMessages(query application.GetMessagesQueryHandler, key []byte) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
+		if !auth.ValidateUser(key, *r) {
+			w.WriteHeader(http.StatusUnauthorized)
+			return
+		}
+
 		recipient, _ := strconv.ParseInt(r.URL.Query().Get("recipient"), 10, 64)
 		start, _ := strconv.ParseInt(r.URL.Query().Get("start"), 10, 64)
 
