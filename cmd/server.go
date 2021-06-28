@@ -48,6 +48,11 @@ func main() {
 			Uri:         "/messages",
 			HandlerFunc: httpx.CreateMessage(application.CreateMessageHandler(messageRepository)),
 		},
+		{
+			Method:      "GET",
+			Uri:         "/messages",
+			HandlerFunc: httpx.GetMessages(application.CreateGetMessagesQueryHandler(messageRepository)),
+		},
 	}
 
 	httpHandler := httpx.SetUpHandlers(handlers...)

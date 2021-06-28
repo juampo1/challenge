@@ -33,3 +33,31 @@ func (repo MessageRepository) CreateMessage(ctx context.Context, msg domain.Mess
 
 	return messageId, time.Now(), nil
 }
+
+func (repo MessageRepository) GetMessages(ctx context.Context, recipient int64, start int64) ([]domain.Message, error) {
+	messages := []domain.Message{}
+
+	getMessagesSql := `SELECT m.recipient_id, m.sender_id, m.created_at, c.content_type, c.text
+											From message m 
+											INNER JOIN content c ON m.id = c.message_id
+											WHERE m.recipient_id = ? AND m.id >= ?
+											ORDER BY m.id ASC
+											LIMIT 100
+												`
+
+	getMessageStatement, _ := repo.Db.Prepare(getMessagesSql)
+
+	messageRows, _ := getMessageStatement.Query(recipient, start)
+
+	for messageRows.Next() {
+		var message domain.Message
+		var content domain.Content
+
+		messageRows.Scan(&message.Recipient, &message.Sender, &message.CreatedAt)
+		messageRows.Scan(&content.ContentType, &content.Text)
+
+		messages = append(messages, message)
+	}
+
+	return messages, nil
+}

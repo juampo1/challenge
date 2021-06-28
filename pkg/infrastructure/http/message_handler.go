@@ -3,6 +3,7 @@ package http
 import (
 	"encoding/json"
 	"net/http"
+	"strconv"
 	"time"
 
 	"github.com/challenge/pkg/application"
@@ -43,8 +44,16 @@ func CreateMessage(cmd application.CreateMessageCommandHandler) http.HandlerFunc
 	}
 }
 
-func GetMessage() http.HandlerFunc {
+func GetMessages(query application.GetMessagesQueryHandler) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
+		recipient, _ := strconv.ParseInt(r.URL.Query().Get("recipient"), 10, 64)
+		start, _ := strconv.ParseInt(r.URL.Query().Get("start"), 10, 64)
 
+		getMessagesQuery := application.GetMessagesQuery{
+			Recipient: recipient,
+			Start:     start,
+		}
+
+		query.Handle(r.Context(), getMessagesQuery)
 	}
 }

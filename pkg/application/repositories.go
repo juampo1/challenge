@@ -14,4 +14,5 @@ type UserRepository interface {
 
 type MessageRepository interface {
 	CreateMessage(ctx context.Context, msg domain.Message) (int64, time.Time, error)
+	GetMessages(ctx context.Context, recipient int64, start int64) ([]domain.Message, error)
 }
