@@ -8,8 +8,9 @@ import (
 	"github.com/challenge/pkg/application"
 	db "github.com/challenge/pkg/database"
 	"github.com/challenge/pkg/infrastructure/auth"
-	httpx "github.com/challenge/pkg/infrastructure/http"
+	"github.com/challenge/pkg/infrastructure/controller"
 	"github.com/challenge/pkg/infrastructure/repositories"
+	"github.com/go-chi/chi/v5"
 )
 
 const (
@@ -27,38 +28,38 @@ func main() {
 	userRepository := repositories.NewUserRepository(*db)
 	messageRepository := repositories.NewMessageRepository(*db)
 
-	handlers := []httpx.ApiHandler{
-		{
-			Method:      "POST",
-			Uri:         CheckEndpoint,
-			HandlerFunc: httpx.Health(),
-		},
-		{
-			Method:      "POST",
-			Uri:         UsersEndpoint,
-			HandlerFunc: httpx.CreateUser(application.CreateUserHandler(userRepository)),
-		},
-		{
-			Method:      "POST",
-			Uri:         LoginEndpoint,
-			HandlerFunc: httpx.Login(application.CreateGetUserByUsernameQueryHandler(userRepository), jwtAuth),
-		},
-		{
-			Method:      "POST",
-			Uri:         MessagesEndpoint,
-			HandlerFunc: httpx.CreateMessage(application.CreateMessageHandler(messageRepository), key),
-		},
-		{
-			Method:      "GET",
-			Uri:         MessagesEndpoint,
-			HandlerFunc: httpx.GetMessages(application.CreateGetMessagesQueryHandler(messageRepository), key),
-		},
+	r := chi.NewRouter()
+
+	//Handlers
+	userHandler := controller.UserHandler{
+		Cmd: application.CreateUserHandler(userRepository),
 	}
 
-	httpHandler := httpx.SetUpHandlers(handlers...)
+	loginHandler := controller.LoginHandler{
+		Qry:     application.CreateGetUserByUsernameQueryHandler(userRepository),
+		JwtAuth: jwtAuth,
+	}
+
+	messageHandler := controller.MessageHandler{
+		CreateMsgCmd:   application.CreateMessageHandler(messageRepository),
+		GetMessagesQry: application.CreateGetMessagesQueryHandler(messageRepository),
+	}
+
+	//Users
+	r.Post(UsersEndpoint, userHandler.CreateUser())
+
+	//Login
+	r.Post(LoginEndpoint, loginHandler.Login())
+
+	//Message
+	r.Post(MessagesEndpoint, auth.ValidateUser(messageHandler.CreateMessage(), key))
+	r.Get(MessagesEndpoint, auth.ValidateUser(messageHandler.GetMessages(), key))
+
+	//Health
+	r.Post(CheckEndpoint, controller.Health())
 
 	// Start server
 	log.Println("Server started at port " + ServerPort)
-	http.ListenAndServe(ServerPort, httpHandler)
+	http.ListenAndServe(ServerPort, r)
 	log.Fatal(http.ListenAndServe(ServerPort, nil))
 }
