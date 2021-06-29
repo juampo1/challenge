@@ -1,4 +1,4 @@
-package http
+package controller
 
 import (
 	"encoding/json"
@@ -9,13 +9,13 @@ import (
 	"github.com/challenge/pkg/application"
 	"github.com/challenge/pkg/domain"
 	"github.com/challenge/pkg/helpers"
-	"github.com/challenge/pkg/infrastructure/auth"
 )
 
 type Content struct {
 	ContentType string `json: "contentType"`
 	Text        string `json: "text"`
 }
+
 type Message struct {
 	Id        int64     `json: id`
 	Timestamp time.Time `json: timestamp`
@@ -24,13 +24,8 @@ type Message struct {
 	Content   Content   `json: "content"`
 }
 
-func CreateMessage(cmd application.CreateMessageCommandHandler, key []byte) http.HandlerFunc {
+func (messageHandler MessageHandler) CreateMessage() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		if !auth.ValidateUser(key, *r) {
-			http.Error(w, "User Unautorized", http.StatusUnauthorized)
-			return
-		}
-
 		var msg Message
 
 		if err := json.NewDecoder(r.Body).Decode(&msg); err != nil {
@@ -46,7 +41,7 @@ func CreateMessage(cmd application.CreateMessageCommandHandler, key []byte) http
 			Text:        msg.Content.Text,
 		}
 
-		id, err := cmd.Handle(r.Context(), createMsgCommand)
+		id, err := messageHandler.CreateMsgCmd.Handle(r.Context(), createMsgCommand)
 
 		if err != nil {
 			httpError, _ := err.(helpers.HttpError)
@@ -63,13 +58,8 @@ func CreateMessage(cmd application.CreateMessageCommandHandler, key []byte) http
 	}
 }
 
-func GetMessages(query application.GetMessagesQueryHandler, key []byte) http.HandlerFunc {
+func (messageHandler MessageHandler) GetMessages() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		if !auth.ValidateUser(key, *r) {
-			w.WriteHeader(http.StatusUnauthorized)
-			return
-		}
-
 		recipient, _ := strconv.ParseInt(r.URL.Query().Get("recipient"), 10, 64)
 		start, _ := strconv.ParseInt(r.URL.Query().Get("start"), 10, 64)
 
@@ -78,7 +68,7 @@ func GetMessages(query application.GetMessagesQueryHandler, key []byte) http.Han
 			Start:     start,
 		}
 
-		messages, err := query.Handle(r.Context(), getMessagesQuery)
+		messages, err := messageHandler.GetMessagesQry.Handle(r.Context(), getMessagesQuery)
 
 		if err != nil {
 			httpError, _ := err.(helpers.HttpError)

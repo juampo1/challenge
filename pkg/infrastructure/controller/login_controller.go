@@ -1,4 +1,4 @@
-package http
+package controller
 
 import (
 	"encoding/json"
@@ -6,10 +6,9 @@ import (
 
 	"github.com/challenge/pkg/application"
 	"github.com/challenge/pkg/helpers"
-	"github.com/challenge/pkg/infrastructure/auth"
 )
 
-func Login(qry application.GetUserByUsernameQueryHandler, jwtAuth auth.JWTAuth) http.HandlerFunc {
+func (h LoginHandler) Login() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		var u user
 
@@ -24,7 +23,7 @@ func Login(qry application.GetUserByUsernameQueryHandler, jwtAuth auth.JWTAuth) 
 			Password: u.Password,
 		}
 
-		user, err := qry.Handle(r.Context(), getUserByUsernameQuery)
+		user, err := h.Qry.Handle(r.Context(), getUserByUsernameQuery)
 
 		if err != nil {
 			httpError, _ := err.(helpers.HttpError)
@@ -32,7 +31,7 @@ func Login(qry application.GetUserByUsernameQueryHandler, jwtAuth auth.JWTAuth) 
 			return
 		}
 
-		token, _ := jwtAuth.CreateToken(user.Id)
+		token, _ := h.JwtAuth.CreateToken(user.Id)
 
 		json.NewEncoder(w).Encode(token)
 	}

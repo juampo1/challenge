@@ -1,4 +1,4 @@
-package http
+package controller
 
 import (
 	"encoding/json"
@@ -13,7 +13,8 @@ type user struct {
 	Password string `json: password`
 }
 
-func CreateUser(cmd application.CreateUserCommandHandler) http.HandlerFunc {
+// CreateUser creates a new user
+func (userHandler UserHandler) CreateUser() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		var u user
 
@@ -28,7 +29,7 @@ func CreateUser(cmd application.CreateUserCommandHandler) http.HandlerFunc {
 			Password: u.Password,
 		}
 
-		id, err := cmd.Handle(r.Context(), createUserCmd)
+		id, err := userHandler.Cmd.Handle(r.Context(), createUserCmd)
 
 		if err != nil {
 			httpError, _ := err.(helpers.HttpError)
