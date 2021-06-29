@@ -3,10 +3,9 @@ package repositories
 import (
 	"context"
 	"database/sql"
-	"errors"
-	"fmt"
 
 	"github.com/challenge/pkg/domain"
+	"github.com/challenge/pkg/helpers"
 )
 
 type UserRepository struct {
@@ -19,20 +18,21 @@ func NewUserRepository(db sql.DB) *UserRepository {
 	}
 }
 
-func (repo UserRepository) CreateUser(ctx context.Context, usr domain.User) int64 {
+func (repo UserRepository) CreateUser(ctx context.Context, usr domain.User) (int64, error) {
 	insertUserSql := `INSERT INTO user(username, password) VALUES (?, ?)`
 
 	statement, _ := repo.Db.Prepare(insertUserSql)
 
-	result, _ := statement.Exec(usr.Username, usr.Password)
-
-	id, err := result.LastInsertId()
+	//Password must be encrypted before storing it, never store it as plain text.
+	result, err := statement.Exec(usr.Username, usr.Password)
 
 	if err != nil {
-		fmt.Println(err)
+		helpers.NewInternalServerError("something went wrog while storing user")
 	}
 
-	return id
+	id, _ := result.LastInsertId()
+
+	return id, nil
 }
 
 func (repo UserRepository) GetUserByUsername(ctx context.Context, usr string) (domain.User, error) {
@@ -46,8 +46,7 @@ func (repo UserRepository) GetUserByUsername(ctx context.Context, usr string) (d
 
 	switch err := row.Scan(&id, &username, &password); err {
 	case sql.ErrNoRows:
-		fmt.Println("username does not exists")
-		return domain.User{}, errors.New("username does not exists")
+		return domain.User{}, helpers.NewNotFoundError("User does not exist")
 	case nil:
 		return domain.User{
 			Id:       id,
@@ -55,6 +54,6 @@ func (repo UserRepository) GetUserByUsername(ctx context.Context, usr string) (d
 			Password: password,
 		}, nil
 	default:
-		panic(err)
+		return domain.User{}, helpers.NewInternalServerError("Something went wrong while retrieving the user from database")
 	}
 }

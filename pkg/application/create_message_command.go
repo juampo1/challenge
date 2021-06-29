@@ -3,10 +3,10 @@ package application
 import (
 	"context"
 	"errors"
-	"fmt"
 	"time"
 
 	"github.com/challenge/pkg/domain"
+	"github.com/challenge/pkg/helpers"
 )
 
 const CreateMessageCommandName = "CreateMessageCommand"
@@ -32,21 +32,20 @@ func CreateMessageHandler(messageRepository MessageRepository) CreateMessageComm
 	}
 }
 
-func (cm CreateMessageCommandHandler) Handle(ctx context.Context, cmd Command) (int64, time.Time, error) {
+func (cm CreateMessageCommandHandler) Handle(ctx context.Context, cmd Command) (int64, error) {
 	msg, ok := cmd.(CreateMessageCommand)
 
 	if !ok {
-		fmt.Println("Wrong Command")
-		return 0, time.Now(), errors.New("wrong command")
+		return 0, helpers.NewInternalServerError("Wrong command")
 	}
 
 	message := domain.NewMessage(domain.NewContent(msg.ContentType, msg.Text), time.Now(), msg.Sender, msg.Recipient)
 
-	id, createdAt, err := cm.MessageRepository.CreateMessage(ctx, message)
+	id, err := cm.MessageRepository.CreateMessage(ctx, message)
 
 	if err != nil {
-		return 0, time.Now(), errors.New("something went wrong while storing the message")
+		return 0, errors.New("something went wrong while storing the message")
 	}
 
-	return id, createdAt, nil
+	return id, nil
 }

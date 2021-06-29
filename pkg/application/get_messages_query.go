@@ -2,9 +2,9 @@ package application
 
 import (
 	"context"
-	"fmt"
 
 	"github.com/challenge/pkg/domain"
+	"github.com/challenge/pkg/helpers"
 )
 
 const GetMessagesQueryName = "GetMessagesQuery"
@@ -32,8 +32,14 @@ func (qry GetMessagesQueryHandler) Handle(ctx context.Context, qy Query) ([]doma
 	q, ok := qy.(GetMessagesQuery)
 
 	if !ok {
-		fmt.Println("wrong query")
+		return nil, helpers.NewInternalServerError("Wrong command")
 	}
 
-	return qry.MessageRepository.GetMessages(ctx, q.Recipient, q.Start)
+	messages, err := qry.MessageRepository.GetMessages(ctx, q.Recipient, q.Start)
+
+	if err != nil {
+		return nil, err
+	}
+
+	return messages, nil
 }

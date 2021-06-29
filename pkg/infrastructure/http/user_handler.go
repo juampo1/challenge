@@ -5,6 +5,7 @@ import (
 	"net/http"
 
 	"github.com/challenge/pkg/application"
+	"github.com/challenge/pkg/helpers"
 )
 
 type user struct {
@@ -27,7 +28,13 @@ func CreateUser(cmd application.CreateUserCommandHandler) http.HandlerFunc {
 			Password: u.Password,
 		}
 
-		id, _ := cmd.Handle(r.Context(), createUserCmd)
+		id, err := cmd.Handle(r.Context(), createUserCmd)
+
+		if err != nil {
+			httpError, _ := err.(helpers.HttpError)
+			http.Error(w, httpError.Message, httpError.Code)
+			return
+		}
 
 		w.WriteHeader(http.StatusOK)
 		json.NewEncoder(w).Encode(id)

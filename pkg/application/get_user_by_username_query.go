@@ -2,10 +2,9 @@ package application
 
 import (
 	"context"
-	"errors"
-	"fmt"
 
 	"github.com/challenge/pkg/domain"
+	"github.com/challenge/pkg/helpers"
 )
 
 const GetUserByUsernameQueryName = "GetUserByUsername"
@@ -33,8 +32,7 @@ func (qry GetUserByUsernameQueryHandler) Handle(ctx context.Context, query Query
 	usr, ok := query.(GetUserByUsernameQuery)
 
 	if !ok {
-		fmt.Println("wrong query")
-		return domain.User{}, errors.New("wrong query")
+		return domain.User{}, helpers.NewInternalServerError("Wrong command")
 	}
 
 	user, err := qry.UserRepository.GetUserByUsername(ctx, usr.Username)
@@ -44,7 +42,7 @@ func (qry GetUserByUsernameQueryHandler) Handle(ctx context.Context, query Query
 	}
 
 	if usr.Username != user.Username || usr.Password != user.Password {
-		return domain.User{}, errors.New("incorrect Username/Password")
+		return domain.User{}, helpers.NewBadRequestError("Incorrect Username/Password")
 	}
 
 	return user, nil

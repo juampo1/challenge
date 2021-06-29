@@ -2,10 +2,9 @@ package application
 
 import (
 	"context"
-	"errors"
-	"fmt"
 
 	"github.com/challenge/pkg/domain"
+	"github.com/challenge/pkg/helpers"
 )
 
 const CreateUserCommandName = "CreateUserCommand"
@@ -33,13 +32,20 @@ func (cu CreateUserCommandHandler) Handle(ctx context.Context, cmd Command) (int
 	usr, ok := cmd.(CreateUserCommand)
 
 	if !ok {
-		fmt.Println("Wrong Command")
-		return 0, errors.New("wrong command")
+		return 0, helpers.NewInternalServerError("Wrong command")
+	}
+
+	if usr.Username == "" || usr.Password == "" {
+		return 0, helpers.NewBadRequestError("Username/Password cannot be empty")
 	}
 
 	user := domain.NewUser(usr.Username, usr.Password)
 
-	id := cu.UserRepository.CreateUser(ctx, user)
+	id, err := cu.UserRepository.CreateUser(ctx, user)
+
+	if err != nil {
+		return 0, err
+	}
 
 	return id, nil
 }

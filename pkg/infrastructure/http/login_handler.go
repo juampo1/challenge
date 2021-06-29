@@ -5,6 +5,7 @@ import (
 	"net/http"
 
 	"github.com/challenge/pkg/application"
+	"github.com/challenge/pkg/helpers"
 	"github.com/challenge/pkg/infrastructure/auth"
 )
 
@@ -23,7 +24,13 @@ func Login(qry application.GetUserByUsernameQueryHandler, jwtAuth auth.JWTAuth) 
 			Password: u.Password,
 		}
 
-		user, _ := qry.Handle(r.Context(), getUserByUsernameQuery)
+		user, err := qry.Handle(r.Context(), getUserByUsernameQuery)
+
+		if err != nil {
+			httpError, _ := err.(helpers.HttpError)
+			http.Error(w, httpError.Message, httpError.Code)
+			return
+		}
 
 		token, _ := jwtAuth.CreateToken(user.Id)
 

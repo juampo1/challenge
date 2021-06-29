@@ -7,25 +7,27 @@ import (
 	"time"
 
 	"github.com/challenge/pkg/application"
+	"github.com/challenge/pkg/domain"
+	"github.com/challenge/pkg/helpers"
 	"github.com/challenge/pkg/infrastructure/auth"
 )
 
 type Content struct {
-	ContentType string `json: "contentType,omitempty"`
-	Text        string `json: "text,omitempty"`
+	ContentType string `json: "contentType"`
+	Text        string `json: "text"`
 }
 type Message struct {
 	Id        int64     `json: id`
 	Timestamp time.Time `json: timestamp`
-	Sender    int64     `json: "sender,omitempty"`
-	Recipient int64     `json: "recipient,omitempty"`
-	Content   Content   `json: "content,omitempty"`
+	Sender    int64     `json: "sender"`
+	Recipient int64     `json: "recipient"`
+	Content   Content   `json: "content"`
 }
 
 func CreateMessage(cmd application.CreateMessageCommandHandler, key []byte) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		if !auth.ValidateUser(key, *r) {
-			w.WriteHeader(http.StatusUnauthorized)
+			http.Error(w, "User Unautorized", http.StatusUnauthorized)
 			return
 		}
 
@@ -44,9 +46,20 @@ func CreateMessage(cmd application.CreateMessageCommandHandler, key []byte) http
 			Text:        msg.Content.Text,
 		}
 
-		id, timestamp, _ := cmd.Handle(r.Context(), createMsgCommand)
+		id, err := cmd.Handle(r.Context(), createMsgCommand)
 
-		json.NewEncoder(w).Encode(Message{Id: id, Timestamp: timestamp})
+		if err != nil {
+			httpError, _ := err.(helpers.HttpError)
+			http.Error(w, httpError.Message, httpError.Code)
+			return
+		}
+
+		json.NewEncoder(w).Encode(struct {
+			Id        int64
+			Timestamp time.Time
+		}{
+			Id:        id,
+			Timestamp: time.Now()})
 	}
 }
 
@@ -65,7 +78,16 @@ func GetMessages(query application.GetMessagesQueryHandler, key []byte) http.Han
 			Start:     start,
 		}
 
-		messages, _ := query.Handle(r.Context(), getMessagesQuery)
-		json.NewEncoder(w).Encode(messages)
+		messages, err := query.Handle(r.Context(), getMessagesQuery)
+
+		if err != nil {
+			httpError, _ := err.(helpers.HttpError)
+			http.Error(w, httpError.Message, httpError.Code)
+			return
+		}
+
+		json.NewEncoder(w).Encode(struct {
+			Messages []domain.Message
+		}{Messages: messages})
 	}
 }
