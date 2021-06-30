@@ -27,7 +27,7 @@ func (repo UserRepository) CreateUser(ctx context.Context, usr domain.User) (int
 	result, err := statement.Exec(usr.Username, usr.Password)
 
 	if err != nil {
-		helpers.NewInternalServerError("something went wrog while storing user")
+		return 0, helpers.NewInternalServerError("User already exists")
 	}
 
 	id, _ := result.LastInsertId()
