@@ -11,6 +11,11 @@ This project is made with:
   - SQLite
   - Chi Router framework
   - JWT for auth and authz
+
+### Things to do
+There are things that remains to be done:
+  - Tests
+  - Docker
 ### Instructions
 
 They are located in the *docs/index.html* file
