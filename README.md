@@ -15,7 +15,6 @@ This project is made with:
 ### Things to do
 There are things that remains to be done:
   - Tests
-  - Docker
 ### Instructions
 
 They are located in the *docs/index.html* file
