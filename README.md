@@ -1,10 +1,16 @@
 # ASAPP Chat Backend Challenge v1
 ### Overview
-This is a Go based boilerplate which runs an HTTP Server configured to answer the endpoints defined in 
-[the challenge you received](https://backend-challenge.asapp.engineering/).
-All endpoints are configured in cmd/server.go and if you go deeper to the handlers
-for each route, you will find a *TODO* comments where you are free to implement your solution.
+This is a Go based boilerplate which runs an HTTP Server. It allow you to create an user, login using JWT.
+It also allow the user to create a new message to another user, and also get all messages.
 
+This project is made with:
+  - Hexagonal Arhitecture (Infrastructure, appilacion, domain)
+  - DDD
+  - CQS Pattern
+  - Repository pattern to handle database connections
+  - SQLite
+  - Chi Router framework
+  - JWT for auth and authz
 ### Instructions
 
 They are located in the *docs/index.html* file
@@ -17,6 +23,3 @@ Installed Go version >= 1.12 since it uses Go Modules.
 `
 go run cmd/server.go
 `
-
-##### Note
-You can remove/modify this file for documenting your solution.
