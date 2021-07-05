@@ -15,6 +15,8 @@ This project is made with:
 ### Things to do
 There are things that remains to be done:
   - Tests
+  - Save JWT private key in env variable
+  - Encrypt User password before storing it into the DB-
 ### Instructions
 
 They are located in the *docs/index.html* file
